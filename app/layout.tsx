@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-
 export const metadata: Metadata = {
   title: "Dev Translator",
   description: "Generador de explicaciones de código con personalidad IA",
@@ -13,9 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className="">
+    <html lang="en">
       <body className="app-shell">
         <div className="app-background" />
         <div className="app-frame">

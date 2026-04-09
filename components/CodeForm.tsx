@@ -5,15 +5,56 @@ import { useState } from "react";
 export default function CodeForm() {
   const [code, setCode] = useState("");
   const [personality, setPersonality] = useState("senior");
-  const [response] = useState(
+  const [response, setResponse] = useState(
     "Aquí aparecerá la respuesta de Gemini cuando se complete la integración del backend."
   );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleSubmit() {
+    setError("");
+    setResponse("");
+
+    if (!code.trim()) {
+      setError("Debes ingresar un bloque de código antes de enviar.");
+      return;
+    }
+
+    setLoading(true);
+
+    fetch("/api/gemini", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, personality }),
+    })
+      .then((res) => {
+        return res.json().then((data) => {
+          if (!res.ok) {
+            throw new Error(data.error || "Error al procesar la solicitud.");
+          }
+          return data;
+        });
+      })
+      .then((data) => {
+        setResponse(data.explanation || "No se recibió respuesta.");
+      })
+      .catch((err) => {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Ocurrió un error inesperado al enviar la petición."
+        );
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
 
   return (
     <section className="code-form">
       <div className="hero">
         <span className="eyebrow">Dev Translator</span>
-        <h1 >Analiza tu bloque de código con estilo.</h1>
+        <h1>Analiza tu bloque de código con estilo.</h1>
         <p className="hero-copy">
           Pega tu código, elige una personalidad y recibe la respuesta en el panel
           de resultados.
@@ -45,14 +86,19 @@ export default function CodeForm() {
           </select>
         </div>
 
-        <button type="button" className="cta-button">
-          Enviar consulta
+        <button
+          type="button"
+          className="cta-button"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? "Enviando..." : "Enviar consulta"}
         </button>
       </div>
 
       <div className="response-box">
         <div className="response-label">Respuesta</div>
-        <p>{response}</p>
+        {error ? <p className="response-error">{error}</p> : <p>{response}</p>}
       </div>
     </section>
   );
